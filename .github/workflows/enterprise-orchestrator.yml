@@ -1,8 +1,14 @@
 name: project2
-on: push
+
+on:
+  push:
+    branches:
+      - master
+
 jobs:
   build:
     runs-on: ubuntu-slim
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -16,20 +22,19 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install Dependencies
         run: npm install
 
       - name: Build Application
         run: npm run build
 
-      - name: Artifact upload
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: artifact-1
-          path: |
-             package*
+          path: package*
 
   test:
     needs: build
@@ -43,13 +48,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          
+
       - name: Cache Dependencies
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install Dependencies
         run: npm install
 
@@ -61,19 +66,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Artifact upload
+      - name: Download Artifact
         uses: actions/download-artifact@v4
         with:
           name: artifact-1
-          path: |
-             package*
-             
+          path: ./artifact
+
+      - name: Verify Download
+        run: ls -la ./artifact
+
       - name: Deploy Application
         run: echo "Deploying to production server..."
 
-
   info:
-     runs-on: ubuntu-latest
-     steps:
-       - name: Output of the Job
-         run: echo "${{ toJson(github) }}" 
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Output GitHub Context
+        run: echo '${{ toJson(github) }}'
